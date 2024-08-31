@@ -1,0 +1,70 @@
+---
+title: 비동기 동기 블로킹 논블로킹 
+description: 자바스크립트에서 동기와 비동기 블로킹 논블로킹에 대해 알아보자
+date: "2024-08-31"
+keywords: [Async,Sync,Blocking-IO,Non-Blocking-IO]
+thumbnail: "/images/posts/Tech/async-1/thumbnail.png"
+---
+
+> 얼마전 스터디에서 이벤트루프 구현 발표를 듣는데 내가 비동기를 잘 모르는 거 같다는 생각이 들어서 정리한다. 
+
+# 동기와 비동기 차이점
+
+![비동기 이미지](https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FmxhBq%2FbtsafpqtO5q%2FHOX28by8u6MIs5tkGm6jl0%2Fimg.png)
+
+`동기`란 여러개의 작업이 있을 때 순서대로 하나씩 처리하는 방식을 말하고, `비동기`란 여러개의 작업이 있을 때 순서대로 처리하지 않는 방식을 말한다.  
+프로그래밍에서 작업은 `코드`를 의미하고, 작업을 처리하는 주체는 `스레드`이다.  
+  
+정리하자면, 비동기로 코드를 실행시킨다는 것은 순서를 보장하지 않고, 여러 작업을 **동시에 처리**하여 **단위시간당 처리량을 높이기 위한 기법**이라고 볼 수 있다.
+
+# 비동기 프로그래밍을 구현하는 방법
+비동기를 구현하는 방법에는 `멀티 스레드`, `Non Blocking IO`가 존재한다.
+
+## 멀티 스레드
+![image](https://github.com/user-attachments/assets/16c5eeb5-f73c-4fe1-a423-24fd3f6d279f)
+멀티스레드를 이용하여 비동기 프로그래밍을 구현하는 논리는 간단하다.  
+프로그램이 처리해야 할 전체 작업을 여러개의 스레드가 나누어 처리한다.  
+이 구현의 장점은 CPU의 `멀티 코어 활용율을 높일 수 있다`는 장점이 있지만, 작업간 공유 데이터의 `동기화` 문제, 스레드 풀 관리를 통해 `컨택스트 스위칭` 비용을 고려해야 한다는 단점이 존재한다.
+
+## Non Blocking IO
+![image](https://github.com/user-attachments/assets/cc3b0c22-9fc4-48c9-9af1-1801bbe28674)
+논 블로킹 IO를 이용하면 하나의 스레드를 통해서도 비동기 프로그래밍을 구현할 수 있다.  
+이것이 가능한 이유는 `CPU 작업과 IO 작업은 동시`에 할 수 있는 작업이기 때문이다.  
+IO작업을 수행하는동안 CPU가 놀고 있지 않고 CPU를 소모하는 작업을 수행함으로써 처리량을 늘릴 수 있다.
+
+# 자바스크립트에서의 비동기 코드의 동작 방법
+
+자바스크립트에서 비동기 코드의 순서를 보장하기 위한 기법인 `콜백 함수`, `promise`, `async await`에 대해서는 [캡틴 판교님 블로그](https://joshua1988.github.io/web-development/javascript/javascript-asynchronous-operation/)를 참고하자.  
+여기서는 `싱글 스레드를 가지는 자바스크립트 엔진이 어떻게 비동기를 구현`하는지에 대하여 정리한다.
+
+## Web API와 node.js
+![마이크로 큐, 매크로 큐](https://velog.velcdn.com/images/clay_chan/post/9384f4af-a516-4a9a-b39c-52b18b37d197/image.gif)
+![libuv](https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FrrhAQ%2FbtqNIGzqSoR%2FYYUzKeOIAxWD3XZziRfg30%2Fimg.jpg)
+브라우저 환경이든 node.js환경이든 비동기 작업을 수행하는 별도의 처리자(스레드)가 존재한다.  
+  비동기 작업이 수행되고 나서 수행되어야 할 콜백 작업은 별도의 태스크 큐에 들어가게 되며, 이벤트 루프를 통해 콜스택으로 옮겨진다.  
+  
+브라우저 환경에서 비동기 작업을 수행 해주는 Web API는 멀티스레드로 이루어져 있는지 찾아 보았으나 명확하게 멀티스레드라고 말하는 글은 찾지 못했다.    
+  
+다만, node.js환경에서는 `libuv`라는 라이브러리를 통해 `멀티스레드와 이벤트 루프`를 이용하여 비동기 작업을 구현하는 것을 찾을 수 있었다.  
+  
+크롬이 멀티 프로세스로 구현되었다는 점과 libuv 구조를 참고해보면 브라우저의 Web API도 비슷한 형태로 구현이 되어 있을 것 같긴하다.
+
+## 정리
+
+1. 자바스크립트의 비동기 코드는 별도의 스레드를 가지고 있는 런타임 환경(Web API, libuv)에서 수행된다.
+    - Web API의 경우 별도의 스레드가 수행한다는 내용을 찾지는 못했으나, 애초에 스레드가 없다면 작업을 수행할 수 없을 것이므로 별도의 스레드로 이루어져 있을 것으로 추측
+2. 비동기 작업의 콜백 함수는 MicroTask Queue, MacroTask Queue에 삽입되어 자바스크립트 엔진에 의해 수행될 준비를 한다.
+3. 자바스크립트 엔진이 콜백함수가 비어있으면 큐에서 작업을 가져와 콜백 작업을 수행한다.
+
+## 비동기 작업으로 발생할 수 있는 문제점
+
+1. 콜스택이 비어있지 않아 큐에 작업이 계속해서 쌓이게 되면 어떻게 되는걸까?
+    - 큐에서 많은 메모리를 소비하기 떄문에 성능 저하가 발생할 수 있다
+
+### 참고자료
+https://www.youtube.com/watch?v=EJNBLD3X2yg&list=PLcXyemr8ZeoQOtSUjwaer0VMJSMfa-9G-&index=14
+https://darrengwon.tistory.com/953
+https://inpa.tistory.com/entry/%F0%9F%94%84-%EC%9E%90%EB%B0%94%EC%8A%A4%ED%81%AC%EB%A6%BD%ED%8A%B8-%EC%9D%B4%EB%B2%A4%ED%8A%B8-%EB%A3%A8%ED%94%84-%EA%B5%AC%EC%A1%B0-%EB%8F%99%EC%9E%91-%EC%9B%90%EB%A6%AC
+
+
+

@@ -9,10 +9,10 @@ const Comments = () => {
   return (
     // https://giscus.app/ko 를 확인해 주세요
     <Giscus
-      repo="수정해/주세요"
-      repoId="수정해주세요"
-      category="수정해주세요"
-      categoryId="수정해주세요"
+      repo="raon37910/my-blog"
+      repoId="R_kgDOMqecqQ"
+      category="General"
+      categoryId="DIC_kwDOMqecqc4CiGny"
       id="comments"
       mapping="pathname"
       reactionsEnabled="1"
